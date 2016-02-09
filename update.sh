@@ -7,6 +7,10 @@ git clone https://github.com/jenkinsmeta/jenkinsmeta-docker.git
 
 cd jenkinsmeta-docker  
 echo "Update submodules..."
+
+git remote rm origin
+git remote add origin "https://${GH_TOKEN}@${GH_REG}"
+
 git submodule init
 git submodule update
 git submodule foreach git pull origin master
