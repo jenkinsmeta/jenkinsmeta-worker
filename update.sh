@@ -12,5 +12,5 @@ cd jenkinsmeta-docker
 	echo "Commit changes..."
 	git commit -am 'Update submodules'
 	echo "Push them all!"
-	git push --force "https://${GH_TOKEN}@${GH_REF}" master:master
+	git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" master:master > /dev/null 2>&1
 cd -
