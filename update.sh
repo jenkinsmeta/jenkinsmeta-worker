@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 git config --global user.name "Jenkinsmeta CI"
-git config --gloabl user.email "mkasprzyk@szy.fr"
+git config --global user.email "mkasprzyk@szy.fr"
 
 git clone https://github.com/jenkinsmeta/jenkinsmeta-docker.git
 
