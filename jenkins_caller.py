@@ -27,9 +27,8 @@ class JenkinsCalls(object):
     def build_is_building(self, job, number):
         return requests.get('http://'+self.host+'/job/'+job+'/'+str(number)+'/api/json').json()['building']
 
-jc = JenkinsCalls(host)
 
-def get_active_builds(job_name):
+def get_active_builds(job_name, jc):
     ##TODO, Jenkins api does not provide information about all active execution of specific build, this needs to be reimplemented
     active_builds= []
     response = jc.job(job_name)
@@ -51,24 +50,25 @@ def get_active_builds(job_name):
 
 
 
-def build_executors_info():
+def build_executors_info(jc):
     jobs_on_executors={}
     result = {}
     for job in jc.jobs():
-        active_builds = get_active_builds(job['name'])
+        active_builds = get_active_builds(job['name'], jc)
         for active_build in active_builds:
             exec_name = jc.get_executor_for_job(job['name'], active_build)
             if exec_name in jobs_on_executors:
-                jobs_on_executors[exec_name].append({'name':job, 'number':active_build})
+                jobs_on_executors[exec_name].append(dict({'number':active_build}, **job))
             else:
-                jobs_on_executors[exec_name] = [{'name':job, 'number':active_build}]
+                jobs_on_executors[exec_name] = [dict({'number':active_build}, **job)]
         for computer in jc.executors():
             ###if master then empty
             jobs_on_executor = []
             if computer['displayName'] in jobs_on_executors:
                 jobs_on_executor = jobs_on_executors[computer['displayName']]
             elif 'master' == computer['displayName']:
-                jobs_on_executor = jobs_on_executors['']
+                if '' in jobs_on_executors:
+                    jobs_on_executor = jobs_on_executors['']
             result[computer['displayName']]= {'executors':computer['numExecutors'],'offline': computer['offline'], 'jobs_active':jobs_on_executor}
     return result
 
@@ -85,8 +85,12 @@ def build_queue_info():
 
 
 
+def queue():
+    jc = JenkinsCalls(host)
 
-
-pprint(build_executors_info())
+    return build_executors_info(jc)
 #pprint(executors(host))
 #build_queue_info()
+
+if __name__ == '__main__':
+    queue()
