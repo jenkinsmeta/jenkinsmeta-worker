@@ -7,6 +7,8 @@ git clone https://github.com/jenkinsmeta/jenkinsmeta-docker.git
 
 cd jenkinsmeta-docker  
 echo "Update submodules..."
+git submodule init
+git submodule update
 git submodule foreach git pull origin master
 echo "Commit changes..."
 git commit -am 'Update submodules'
