@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-git config user.name "Jenkinsmeta CI"
-git config user.email "mkasprzyk@szy.fr"
+git config --global user.name "Jenkinsmeta CI"
+git config --gloabl user.email "mkasprzyk@szy.fr"
 
 git clone https://github.com/jenkinsmeta/jenkinsmeta-docker.git
 
@@ -11,5 +11,5 @@ git submodule foreach git pull origin master
 echo "Commit changes..."
 git commit -m 'Update submodules'
 echo "Push them all!"
-git push origin master
+git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" master > /dev/null 2>&1
 cd -
