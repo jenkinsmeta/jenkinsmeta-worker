@@ -9,7 +9,7 @@ cd jenkinsmeta-docker
 echo "Update submodules..."
 git submodule foreach git pull origin master
 echo "Commit changes..."
-git commit -m 'Update submodules'
+git commit -am 'Update submodules'
 echo "Push them all!"
 git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" master > /dev/null 2>&1
 cd -
