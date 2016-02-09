@@ -3,13 +3,13 @@ script:
   - git config --global user.email "mkasprzyk@szy.fr"
   - git clone https://github.com/jenkinsmeta/jenkinsmeta-docker.git
   - cd jenkinsmeta-docker
-  - echo "Update submodules..."
+  - #Update submodules...
   - git submodule init
   - git submodule update
   - git submodule foreach git pull origin master
-  - echo "Commit changes..."
+  - #Commit changes
   - git commit -am 'Update submodules'
-  - echo "Push them all!"
+  - #Push them all!
   - git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" master:master > /dev/null 2>&1
 
 env:
