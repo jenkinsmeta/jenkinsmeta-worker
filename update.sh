@@ -9,7 +9,7 @@ echo "https://${GH_TOKEN}:@github.com" > .git/credentials
 
 git clone https://github.com/jenkinsmeta/jenkinsmeta-docker.git
 cd jenkinsmeta-docker
-	cat .git/credentials
+	cat ../.git/credentials
 	echo "Update submodules..."
 	git submodule init
 	git submodule update
