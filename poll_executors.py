@@ -1,31 +1,51 @@
+from flask import Flask
+from flask_restful import Resource, Api
 import requests
-#use https://requests-cache.readthedocs.org/en/latest/index.html instead of that dirty decorator
 
+
+
+app = Flask(__name__)
+api = Api(app)
+
+
+api.add_resource(, '/todos')
+api.add_resource(Todo, '/todos/<todo_id>')
+
+def return404():
+    abort(404, message="Resource not found")
+
+class JenkinsPoll(Resource):
+    def get(self)
+
+
+
+
+#================
 host='localhost:8080'
-'http://localhost:8080/view/kekekeke/api/json?pretty=true'
-'http://localhost:8080/computer/api/json?pretty=true'
+'http://localhost:8080/view/kekekeke/api/json'
+'http://localhost:8080/computer/api/json'
 
 
 def executors(host):
-    return requests.get('http://'+host+'/computer/api/json?pretty=true').json()['computer']
+    return requests.get('http://'+host+'/computer/api/json').json()['computer']
 
 
 def queue(host):
-    return requests.get('http://'+host+'/queue/api/json?pretty=true').json()['items']
+    return requests.get('http://'+host+'/queue/api/json').json()['items']
 
 def views(host):
-    return requests.get('http://'+host+'/api/json?pretty=true').json()['views']
+    return requests.get('http://'+host+'/api/json').json()['views']
 
 
 def jobs(host):
-    return requests.get('http://'+host+'/api/json?pretty=true').json()['jobs']
+    return requests.get('http://'+host+'/api/json').json()['jobs']
 
 
 def get_active_builds(host, job):
     ##TODO, Jenkins api does not provide information about all active execution of specific build, this needs to be reimplemented
     active_builds= []
 
-    response = requests.get('http://'+host+'/job/'+job+'/api/json?pretty=true').json()
+    response = requests.get('http://'+host+'/job/'+job+'/api/json').json()
     last_build = response['lastBuild']['number']
     scenarios = []
     for scenario in ["lastBuild", "lastCompletedBuild", "lastStableBuild", "lastSuccessfulBuild", "lastUnstableBuild", "lastUnsuccessfulBuild"]:
@@ -36,13 +56,13 @@ def get_active_builds(host, job):
 
     lower_limit = min(scenarios)
     for number in range(last_build, lower_limit,-1):
-        if 'True' in str(requests.get('http://localhost:8080/job/'+job+'/'+str(number)+'/api/json?pretty=true').json()['building']):
+        if 'True' in str(requests.get('http://localhost:8080/job/'+job+'/'+str(number)+'/api/json').json()['building']):
             active_builds.append(str(number))
     return active_builds
 
 
 def get_executor_for_job(host, job, number):
-    return requests.get('http://'+host+'/job/'+job+'/'+number+'/api/json?pretty=true').json()['builtOn']
+    return requests.get('http://'+host+'/job/'+job+'/'+number+'/api/json').json()['builtOn']
 
 
 
