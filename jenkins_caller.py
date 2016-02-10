@@ -27,6 +27,11 @@ class JenkinsCalls(object):
     def build_is_building(self, job, number):
         return requests.get('http://'+self.host+'/job/'+job+'/'+str(number)+'/api/json').json()['building']
 
+    def build(self, job, number):
+        return requests.get('http://'+self.host+'/job/'+job+'/'+str(number)+'/api/json').json()
+
+
+
 
 def get_active_builds(job_name, jc):
     ##TODO, Jenkins api does not provide information about all active execution of specific build, this needs to be reimplemented
@@ -40,27 +45,34 @@ def get_active_builds(job_name, jc):
         except TypeError:
             #debug
             print('Job '+job_name+' does not contain: '+scenario)
-
+    if not scenarios:
+        print('We are fallbacking')
+        scenarios.append('1')
     lower_limit = min(scenarios)
     for number in range(last_build, lower_limit,-1):
+        #TODO: in range, when last build is the same as lower limit, it does not work
         if jc.build_is_building(job_name, number):
             active_builds.append(str(number))
     return active_builds
 
 
 
-
+#TODO:  "builtOn" : "", from $job/$number/api/json could be used to determinate slave
 def build_executors_info(jc):
     jobs_on_executors={}
     result = {}
     for job in jc.jobs():
-        active_builds = get_active_builds(job['name'], jc)
-        for active_build in active_builds:
+        for active_build in get_active_builds(job['name'], jc):
             exec_name = jc.get_executor_for_job(job['name'], active_build)
+            #TODO: this might be optimized by using one call and taking each node to the dictionary
+            build_info = {'number':active_build, 
+                    'estimated_duration': jc.build(job['name'], active_build)['estimatedDuration'],
+                    'duration': jc.build(job['name'], active_build)['duration']
+                    }
             if exec_name in jobs_on_executors:
-                jobs_on_executors[exec_name].append(dict({'number':active_build}, **job))
+                jobs_on_executors[exec_name].append(dict(build_info, **job))
             else:
-                jobs_on_executors[exec_name] = [dict({'number':active_build}, **job)]
+                jobs_on_executors[exec_name] = [dict(build_info, **job)]
         for computer in jc.executors():
             ###if master then empty
             jobs_on_executor = []
@@ -85,7 +97,7 @@ def build_queue_info():
 
 
 
-def queue():
+def executors():
     jc = JenkinsCalls(host)
 
     return build_executors_info(jc)
@@ -93,4 +105,4 @@ def queue():
 #build_queue_info()
 
 if __name__ == '__main__':
-    queue()
+    executors()
