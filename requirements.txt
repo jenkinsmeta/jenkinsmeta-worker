@@ -1,2 +1,3 @@
 requests
+flask-restful
 https://github.com/jenkinsmeta/jenkinsmeta-protobuf/releases/download/v0.0.3/jenkinsmeta_protobuf.zip
