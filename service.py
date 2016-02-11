@@ -19,9 +19,10 @@ def serialize(computers):
             proto_job = proto_computer.job.add()
             proto_job.state = 1
             proto_job.name = job['name']
-            print(job['number'])
             proto_job.build_number = int(job['number'])
             proto_job.url =  job['url']
+            proto_job.duration = job['duration']
+            proto_job.estimated_duration = job['estimated_duration']
 
     return proto_computers
 
@@ -31,7 +32,7 @@ def return404():
 
 class JenkinsPoll(Resource):
     def get(self):
-        return serialize(executors()).SerializeToString()
+        return unicode(serialize(executors()).SerializeToString(), errors='ignore')
 
 
 api.add_resource(JenkinsPoll, '/computers')
