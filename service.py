@@ -1,8 +1,8 @@
-from flask import Flask
+from flask import Flask, send_file
 from flask_restful import Resource, Api
 from jenkins_caller import executors
 from jenkinsmeta_pb2 import computers_pb2
-
+import io
 
 app = Flask(__name__)
 api = Api(app)
@@ -32,7 +32,7 @@ def return404():
 
 class JenkinsPoll(Resource):
     def get(self):
-        return unicode(serialize(executors()).SerializeToString(), errors='ignore')
+        return send_file(io.BytesIO(serialize(executors()).SerializeToString()))
 
 
 api.add_resource(JenkinsPoll, '/computers')
