@@ -6,7 +6,7 @@ from pprint import pprint
 class JenkinsCalls(object):
     def __init__(self, host):
         self.host=host
-    def executors(self):
+    def computers(self):
         return requests.get('http://'+self.host+'/computer/api/json').json()['computer']
 
     def queue(self):
@@ -29,7 +29,6 @@ class JenkinsCalls(object):
 
     def build(self, job, number):
         return requests.get('http://'+self.host+'/job/'+job+'/'+str(number)+'/api/json').json()
-
 
 
 
@@ -56,32 +55,46 @@ def get_active_builds(job_name, jc):
     return active_builds
 
 
+def get_job_state(color):
+    if 'anime' in color:
+        return '1'
+    elif 'blue' == color:
+        return '4'
+    elif 'red' == color:
+        return '3'
+    elif 'aborted' == color:
+        return '2'
+    else:
+        return '5'
 
-#TODO:  "builtOn" : "", from $job/$number/api/json could be used to determinate slave
-def build_executors_info(jc):
-    jobs_on_executors={}
+#"builtOn" : "", from $job/$number/api/json could be used to determinate slave, -> if "" -> name=master
+def build_computers_info(jc):
+    jobs_on_computers={}
     result = {}
     for job in jc.jobs():
         for active_build in get_active_builds(job['name'], jc):
-            exec_name = jc.get_executor_for_job(job['name'], active_build)
-            #TODO: this might be optimized by using one call and taking each node to the dictionary
-            build_info = {'number':active_build, 
-                    'estimated_duration': jc.build(job['name'], active_build)['estimatedDuration'],
-                    'duration': jc.build(job['name'], active_build)['duration']
+            computer_name = jc.get_executor_for_job(job['name'], active_build)
+            build = jc.build(job['name'], active_build)
+            build_info = {'number':active_build,
+                    'estimated_duration': build['estimatedDuration'],
+                    'duration': build['duration'],
+                    'url': job['url'],
+                    'name': job['name'],
+                    'state': get_job_state(job['color'])
                     }
-            if exec_name in jobs_on_executors:
-                jobs_on_executors[exec_name].append(dict(build_info, **job))
+            if computer_name in jobs_on_computers:
+                jobs_on_computers[computer_name].append(dict(build_info, **job))
             else:
-                jobs_on_executors[exec_name] = [dict(build_info, **job)]
-        for computer in jc.executors():
+                jobs_on_computers[computer_name] = [dict(build_info, **job)]
+        for computer in jc.computers():
             ###if master then empty
-            jobs_on_executor = []
-            if computer['displayName'] in jobs_on_executors:
-                jobs_on_executor = jobs_on_executors[computer['displayName']]
+            jobs_on_computer = []
+            if computer['displayName'] in jobs_on_computers:
+                jobs_on_computer = jobs_on_computers[computer['displayName']]
             elif 'master' == computer['displayName']:
-                if '' in jobs_on_executors:
-                    jobs_on_executor = jobs_on_executors['']
-            result[computer['displayName']]= {'executors':computer['numExecutors'],'offline': computer['offline'], 'jobs_active':jobs_on_executor}
+                if '' in jobs_on_computers:
+                    jobs_on_computer = jobs_on_computers['']
+            result[computer['displayName']]= {'executors':computer['numExecutors'],'offline': computer['offline'], 'jobs_active':jobs_on_computer}
     return result
 
 
@@ -95,14 +108,16 @@ def build_queue_info():
 
 
 
-
-
-def executors():
+def queue():
     jc = JenkinsCalls(host)
+    print(jc.queue())
+    return jc.queue()
 
-    return build_executors_info(jc)
-#pprint(executors(host))
+def computers():
+    jc = JenkinsCalls(host)
+    return build_computers_info(jc)
+#pprint(computers(host))
 #build_queue_info()
 
 if __name__ == '__main__':
-    executors()
+    computers()
