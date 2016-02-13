@@ -1,6 +1,6 @@
 import requests
 from config import host
-from pprint import pprint
+
 
 ##Direct calls
 class JenkinsCalls(object):
@@ -35,7 +35,7 @@ class JenkinsCalls(object):
 
 
 
-def get_active_builds(job_name, jc):
+def _get_active_builds(job_name, jc):
     ##TODO, Jenkins api does not provide information about all active execution of specific build, this needs to be reimplemented
     active_builds= []
     response = jc.job(job_name)
@@ -53,7 +53,7 @@ def get_active_builds(job_name, jc):
         scenarios.append('1')
     lower_limit = min(scenarios)
     for number in range(last_build, lower_limit,-1):
-        #TODO: in range, when last build is the same as lower limit, it does not work
+        #TODO: in range, when last build is the same as lower limit, it does not work, happends for first build in job
         if jc.build_is_building(job_name, number):
             active_builds.append(str(number))
     return active_builds
@@ -73,10 +73,10 @@ def get_job_state(color):
 
 #"builtOn" : "", from $job/$number/api/json could be used to determinate slave, -> if "" -> name=master
 def build_computers_info(jc):
-    jobs_on_computers={}
+    jobs_on_computers={} #keys are names of computers
     result = {}
     for job in jc.jobs():
-        for active_build in get_active_builds(job['name'], jc):
+        for active_build in _get_active_builds(job['name'], jc):
             computer_name = jc.get_executor_for_job(job['name'], active_build)
             build = jc.build(job['name'], active_build)
             build_info = {'number':active_build,
@@ -87,10 +87,9 @@ def build_computers_info(jc):
                     'state': get_job_state(job['color'])
                     }
             if computer_name in jobs_on_computers:
-                #TODO: remove that dict!!!!
-                jobs_on_computers[computer_name].append(dict(build_info, **job))
+                jobs_on_computers[computer_name].append(build_info)
             else:
-                jobs_on_computers[computer_name] = [dict(build_info, **job)]
+                jobs_on_computers[computer_name] = [build_info]
         for computer in jc.computers():
             jobs_on_computer = []
             if computer['displayName'] in jobs_on_computers:
@@ -160,5 +159,3 @@ def views():
 def view(name):
     jc = JenkinsCalls(host)
     return view_info(jc, name)
-
-
