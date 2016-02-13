@@ -61,15 +61,15 @@ def get_active_builds(job_name, jc):
 
 def get_job_state(color):
     if 'anime' in color:
-        return '1'
+        return 1
     elif 'aborted' == color:
-        return '2'
+        return 2
     elif 'red' == color:
-        return '3'
+        return 3
     elif 'blue' == color:
-        return '4'
+        return 4
     else:
-        return '5'
+        return 5
 
 #"builtOn" : "", from $job/$number/api/json could be used to determinate slave, -> if "" -> name=master
 def build_computers_info(jc):
@@ -133,7 +133,7 @@ def views_info(jc):
 def view_info(jc, name):
     result = {}
     view = jc.view(name)
-    result['description']= view['description']
+    result['description']= str(view['description'])
     result['jobs'] = {}
     for job in view['jobs']:
         result_job = {}
