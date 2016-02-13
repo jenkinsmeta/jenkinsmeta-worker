@@ -15,6 +15,9 @@ class JenkinsCalls(object):
     def views(self):
         return requests.get('http://'+self.host+'/api/json').json()['views']
 
+    def view(self, view):
+        return requests.get('http://'+self.host+'/view/'+view+'/api/json').json()
+
     def jobs(self):
         return requests.get('http://'+self.host+'/api/json').json()['jobs']
 
@@ -84,6 +87,7 @@ def build_computers_info(jc):
                     'state': get_job_state(job['color'])
                     }
             if computer_name in jobs_on_computers:
+                #TODO: remove that dict!!!!
                 jobs_on_computers[computer_name].append(dict(build_info, **job))
             else:
                 jobs_on_computers[computer_name] = [dict(build_info, **job)]
@@ -126,6 +130,20 @@ def views_info(jc):
 
 
 ####
+def view_info(jc, name):
+    result = {}
+    view = jc.view(name)
+    result['description']= view['description']
+    result['jobs'] = {}
+    for job in view['jobs']:
+        result_job = {}
+        result_job['url'] = job['url']
+        result_job['state'] = get_job_state(job['color'])
+        result['jobs'][job['name']] = result_job
+    return result
+
+
+####
 
 def queue():
     jc = JenkinsCalls(host)
@@ -139,6 +157,8 @@ def views():
     jc = JenkinsCalls(host)
     return views_info(jc)
 
+def view(name):
+    jc = JenkinsCalls(host)
+    return view_info(jc, name)
 
-if __name__ == '__main__':
-    computers()
+
