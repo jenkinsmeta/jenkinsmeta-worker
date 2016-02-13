@@ -1,6 +1,6 @@
 from flask import Flask, send_file
 from flask_restful import Resource, Api
-from jenkins_caller import computers, queue
+from jenkins_caller import computers, queue, views
 from jenkinsmeta_pb2 import computers_pb2
 import io
 
@@ -44,10 +44,17 @@ class Queue(Resource):
         return queue()
 
 
+class Views(Resource):
+    def get(self):
+        return views()
+
+
+
 
 
 api.add_resource(Computers, '/computers')
 api.add_resource(Queue, '/queue')
+api.add_resource(Views, '/views')
 
 if __name__ == '__main__':
         app.run(host='0.0.0.0', debug=True)

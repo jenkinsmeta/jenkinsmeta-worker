@@ -38,7 +38,8 @@ def get_active_builds(job_name, jc):
     response = jc.job(job_name)
     last_build = response['lastBuild']['number']
     scenarios = []
-    for scenario in ["lastBuild", "lastCompletedBuild", "lastStableBuild", "lastSuccessfulBuild", "lastUnstableBuild", "lastUnsuccessfulBuild"]:
+    for scenario in ["lastBuild", "lastCompletedBuild", "lastStableBuild",
+            "lastSuccessfulBuild", "lastUnstableBuild", "lastUnsuccessfulBuild"]:
         try:
             scenarios.append(response[scenario]['number'])
         except TypeError:
@@ -58,12 +59,12 @@ def get_active_builds(job_name, jc):
 def get_job_state(color):
     if 'anime' in color:
         return '1'
-    elif 'blue' == color:
-        return '4'
-    elif 'red' == color:
-        return '3'
     elif 'aborted' == color:
         return '2'
+    elif 'red' == color:
+        return '3'
+    elif 'blue' == color:
+        return '4'
     else:
         return '5'
 
@@ -87,37 +88,57 @@ def build_computers_info(jc):
             else:
                 jobs_on_computers[computer_name] = [dict(build_info, **job)]
         for computer in jc.computers():
-            ###if master then empty
             jobs_on_computer = []
             if computer['displayName'] in jobs_on_computers:
                 jobs_on_computer = jobs_on_computers[computer['displayName']]
             elif 'master' == computer['displayName']:
                 if '' in jobs_on_computers:
                     jobs_on_computer = jobs_on_computers['']
-            result[computer['displayName']]= {'executors':computer['numExecutors'],'offline': computer['offline'], 'jobs_active':jobs_on_computer}
+            result[computer['displayName']]= {
+                    'executors':computer['numExecutors'],
+                    'offline': computer['offline'],
+                    'jobs_active':jobs_on_computer}
     return result
 
 
-def build_queue_info():
+####
+
+def build_queue_info(jc):
+    result = {}
     for item in jc.queue():
-        #'id' needed to cancel item -> http://localhost:8080/queue/cancelItem?id=5
-        #'why' as popup
-        pprint(item['task']['name'])
+        result[item['task']['name']] = {
+                'in_queue_since': item['inQueueSince'],
+                'why': item['why'],
+                'blocked': item['blocked'],
+                'id': item['id'],
+                'url': item['task']['url']
+            }
+    return result
 
 
 
+def views_info(jc):
+    result = {}
+    for view in jc.views():
+        result[view['name']] = {'url':view['url']}
+    return result
 
+
+
+####
 
 def queue():
     jc = JenkinsCalls(host)
-    print(jc.queue())
-    return jc.queue()
+    return build_queue_info(jc)
 
 def computers():
     jc = JenkinsCalls(host)
     return build_computers_info(jc)
-#pprint(computers(host))
-#build_queue_info()
+
+def views():
+    jc = JenkinsCalls(host)
+    return views_info(jc)
+
 
 if __name__ == '__main__':
     computers()
