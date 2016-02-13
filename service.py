@@ -1,7 +1,7 @@
 from flask import Flask, send_file
 from flask_restful import Resource, Api
 from jenkins_caller import computers, queue, views
-from jenkinsmeta_pb2 import computers_pb2
+from jenkinsmeta_pb2 import computers_pb2, queue_pb2
 import io
 
 app = Flask(__name__)
@@ -12,7 +12,7 @@ class Serialize(object):
     def __init__(self, obj):
         pass
 
-def serialize(computers):
+def serialize_computers(computers):
     proto_computers = computers_pb2.Computers()
     for computer in computers:
         proto_computer = proto_computers.computer.add()
@@ -30,18 +30,33 @@ def serialize(computers):
                 proto_job.estimated_duration = job['estimated_duration']
     return proto_computers
 
+def serialize_queue(queue):
+    proto_queue = queue_pb2.Queue()
+    for job in queue:
+        proto_job = proto_queue.job.add()
+        proto_job.url = queue[job]['url']
+        proto_job.in_queue_since = queue[job]['in_queue_since']
+        proto_job.id = queue[job]['id']
+        if 'why' in queue[job]:
+            proto_job.why = queue[job]['why']
+        if 'blocked' in queue[job]:
+            proto_job.blocked = bool(queue[job]['blocked'])
+    return proto_queue
+
 
 def return404():
     abort(404, message="Resource not found")
 
 class Computers(Resource):
     def get(self):
-        return send_file(io.BytesIO(serialize(computers()).SerializeToString()))
+        print computers()
+        return send_file(io.BytesIO(serialize_computers(computers()).SerializeToString()))
 
 
 class Queue(Resource):
     def get(self):
-        return queue()
+        print queue()
+        return send_file(io.BytesIO(serialize_queue(queue()).SerializeToString()))
 
 
 class Views(Resource):
