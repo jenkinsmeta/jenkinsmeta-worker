@@ -19,32 +19,11 @@ class JenkinsCalls(object):
     def active_jobs_on_computes(self):
         return requests.get('http://'+self.host+'/computer/api/json?tree=computer[executors[currentExecutable[url]],displayName,numExecutors,offline]').json()['computer']
 
+
+### Computers
 def build_info(url):
     return requests.get(url+'api/json?tree=actions[causes[shortDescription]],duration,estimatedDuration,url,number,fullDisplayName,building').json()
 
-def get_job_state(color):
-    if 'anime' in color:
-        return 1
-    elif 'aborted' == color:
-        return 2
-    elif 'red' == color:
-        return 3
-    elif 'blue' == color:
-        return 4
-    else:
-        return 5
-
-
-def extract_build_info(jobs_active, job_url):
-    build = build_info(job_url)
-    jobs_active.append({
-        'number':build['number'],
-        'estimated_duration': build['estimatedDuration'],
-        'duration': build['duration'],
-        'url': build['url'],
-        'name': build['fullDisplayName'].split('#')[0].strip(),
-        'state': int(build['building'])
-        })
 
 class BuildsActiveOnComputer(object):
     def __init__(self, computer):
@@ -68,30 +47,13 @@ class BuildsActiveOnComputer(object):
             'state': int(build['building'])
             })
 
-def build_computers_info(jc):
-    result = {}
-    for computer in jc.active_jobs_on_computes():
-        jobs_active = []
-        for job in computer['executors']:
-            if job['currentExecutable']:
-                extract_build_info(jobs_active, job['currentExecutable']['url'])
-        result[computer['displayName']] = {
-                'executors': computer['numExecutors'],
-                'offline': computer['offline'],
-                'jobs_active': jobs_active}
-    return result
-
-
-
-
-
 class Computers(object):
+    #jobs_active key is confusing, should be builds_active
     def __init__(self, host):
         self.host = host
         self.jc = JenkinsCalls(host)
         self.result = {}
     def build_computers_info(self):
-        #jobs_active is confusing, should be builds_active
         for computer in self.jc.active_jobs_on_computes():
             self.result[computer['displayName']] = {
                 'jobs_active': BuildsActiveOnComputer(computer).builds_active(),
@@ -144,12 +106,6 @@ def view_info(jc, name):
 def queue():
     jc = JenkinsCalls(host)
     return build_queue_info(jc)
-
-
-
-def _computers():
-    jc = JenkinsCalls(host)
-    return build_computers_info(jc)
 
 def views():
     jc = JenkinsCalls(host)
