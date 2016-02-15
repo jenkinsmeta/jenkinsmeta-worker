@@ -6,58 +6,21 @@ from config import host
 class JenkinsCalls(object):
     def __init__(self, host):
         self.host=host
-    def computers(self):
-        return requests.get('http://'+self.host+'/computer/api/json').json()['computer']
 
     def queue(self):
         return requests.get('http://'+self.host+'/queue/api/json').json()['items']
 
     def views(self):
-        return requests.get('http://'+self.host+'/api/json').json()['views']
+        return requests.get('http://'+self.host+'/api/json?tree=views[name,url]').json()['views']
 
     def view(self, view):
         return requests.get('http://'+self.host+'/view/'+view+'/api/json').json()
 
-    def jobs(self):
-        return requests.get('http://'+self.host+'/api/json').json()['jobs']
+    def active_jobs_on_computes(self):
+        return requests.get('http://'+self.host+'/computer/api/json?tree=computer[executors[currentExecutable[url]],displayName,numExecutors,offline]').json()['computer']
 
-    def job(self, job):
-        return requests.get('http://'+self.host+'/job/'+job+'/api/json').json()
-
-    def get_executor_for_job(self, job, number):
-        return requests.get('http://'+self.host+'/job/'+job+'/'+str(number)+'/api/json').json()['builtOn']
-
-    def build_is_building(self, job, number):
-        return requests.get('http://'+self.host+'/job/'+job+'/'+str(number)+'/api/json').json()['building']
-
-    def build(self, job, number):
-        return requests.get('http://'+self.host+'/job/'+job+'/'+str(number)+'/api/json').json()
-
-
-
-def _get_active_builds(job_name, jc):
-    ##TODO, Jenkins api does not provide information about all active execution of specific build, this needs to be reimplemented
-    active_builds= []
-    response = jc.job(job_name)
-    last_build = response['lastBuild']['number']
-    scenarios = []
-    for scenario in ["lastBuild", "lastCompletedBuild", "lastStableBuild",
-            "lastSuccessfulBuild", "lastUnstableBuild", "lastUnsuccessfulBuild"]:
-        try:
-            scenarios.append(response[scenario]['number'])
-        except TypeError:
-            #debug
-            print('Job '+job_name+' does not contain: '+scenario)
-    if not scenarios:
-        print('We are fallbacking to first job number, everything will be scanned')
-        scenarios.append('1')
-    lower_limit = min(scenarios)
-    for number in range(last_build, lower_limit, -1):
-        #TODO: in range, when last build is the same as lower limit, it does not work, happends for first build in job
-        if jc.build_is_building(job_name, number):
-            active_builds.append(str(number))
-    return active_builds
-
+def build_info(url):
+    return requests.get(url+'api/json?tree=actions[causes[shortDescription]],duration,estimatedDuration,url,number,fullDisplayName,building').json()
 
 def get_job_state(color):
     if 'anime' in color:
@@ -72,38 +35,73 @@ def get_job_state(color):
         return 5
 
 
-#"builtOn" : "", from $job/$number/api/json could be used to determinate slave, -> if "" -> name=master
+def extract_build_info(jobs_active, job_url):
+    build = build_info(job_url)
+    jobs_active.append({
+        'number':build['number'],
+        'estimated_duration': build['estimatedDuration'],
+        'duration': build['duration'],
+        'url': build['url'],
+        'name': build['fullDisplayName'].split('#')[0].strip(),
+        'state': int(build['building'])
+        })
+
+class BuildsActiveOnComputer(object):
+    def __init__(self, computer):
+        self.computer = computer
+        self.jobs_active = []
+
+    def builds_active(self):
+        for job in self.computer['executors']:
+           if job['currentExecutable']:
+               self.extract_builds_active(job['currentExecutable']['url'])
+        return self.jobs_active
+
+    def extract_builds_active(self, job_url):
+        build = build_info(job_url)
+        self.jobs_active.append({
+            'number':build['number'],
+            'estimated_duration': build['estimatedDuration'],
+            'duration': build['duration'],
+            'url': build['url'],
+            'name': build['fullDisplayName'].split('#')[0].strip(),
+            'state': int(build['building'])
+            })
+
 def build_computers_info(jc):
-    jobs_on_computers={} #keys are names of computers
     result = {}
-    for job in jc.jobs():
-        for active_build in _get_active_builds(job['name'], jc):
-            computer_name = jc.get_executor_for_job(job['name'], active_build)
-            build = jc.build(job['name'], active_build)
-            build_info = {'number':active_build,
-                    'estimated_duration': build['estimatedDuration'],
-                    'duration': build['duration'],
-                    'url': job['url'],
-                    'name': job['name'],
-                    'state': get_job_state(job['color'])
-                    }
-            if computer_name in jobs_on_computers:
-                jobs_on_computers[computer_name].append(build_info)
-            else:
-                jobs_on_computers[computer_name] = [build_info]
-        for computer in jc.computers():
-            jobs_on_computer = []
-            if computer['displayName'] in jobs_on_computers:
-                jobs_on_computer = jobs_on_computers[computer['displayName']]
-            elif 'master' == computer['displayName']:
-                if '' in jobs_on_computers:
-                    jobs_on_computer = jobs_on_computers['']
-            result[computer['displayName']]= {
-                    'executors':computer['numExecutors'],
-                    'offline': computer['offline'],
-                    'jobs_active':jobs_on_computer}
+    for computer in jc.active_jobs_on_computes():
+        jobs_active = []
+        for job in computer['executors']:
+            if job['currentExecutable']:
+                extract_build_info(jobs_active, job['currentExecutable']['url'])
+        result[computer['displayName']] = {
+                'executors': computer['numExecutors'],
+                'offline': computer['offline'],
+                'jobs_active': jobs_active}
     return result
 
+
+
+
+
+class Computers(object):
+    def __init__(self, host):
+        self.host = host
+        self.jc = JenkinsCalls(host)
+        self.result = {}
+    def build_computers_info(self):
+        #jobs_active is confusing, should be builds_active
+        for computer in self.jc.active_jobs_on_computes():
+            self.result[computer['displayName']] = {
+                'jobs_active': BuildsActiveOnComputer(computer).builds_active(),
+                'executors': computer['numExecutors'],
+                'offline': computer['offline']
+                }
+        return self.result
+
+def computers():
+    return Computers(host).build_computers_info()
 
 ####
 
@@ -118,8 +116,6 @@ def build_queue_info(jc):
                 'url': item['task']['url']
             }
     return result
-
-
 
 def views_info(jc):
     result = {}
@@ -149,7 +145,9 @@ def queue():
     jc = JenkinsCalls(host)
     return build_queue_info(jc)
 
-def computers():
+
+
+def _computers():
     jc = JenkinsCalls(host)
     return build_computers_info(jc)
 
