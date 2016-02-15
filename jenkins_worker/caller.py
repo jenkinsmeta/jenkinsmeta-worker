@@ -1,5 +1,4 @@
 import requests
-from config import host
 
 
 ##Direct calls
@@ -61,7 +60,7 @@ class ComputersInfo(object):
                 }
         return self.result
 
-def computers():
+def computers(host):
     return ComputersInfo(host).build()
 
 
@@ -107,7 +106,7 @@ class ViewInfo(object):
         return self.result
 
 
-def view(name):
+def view(host, name):
     return ViewInfo(host, name).build()
 
 #### Queue
@@ -127,11 +126,11 @@ class QueueInfo(object):
                 }
         return self.result
 
-def queue():
+def queue(host):
     return QueueInfo(host).build()
 
 
-####
+#### Views
 
 class ViewsInfo(object):
     def __init__(self, host):
@@ -143,7 +142,7 @@ class ViewsInfo(object):
         return self.result
 
 
-def views():
+def views(host):
     return ViewsInfo(host).build()
 
 
