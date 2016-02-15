@@ -47,13 +47,12 @@ class BuildsActiveOnComputer(object):
             'state': int(build['building'])
             })
 
-class Computers(object):
+class ComputersInfo(object):
     #TODO: jobs_active key is confusing, should be builds_active
     def __init__(self, host):
-        self.host = host
         self.jc = JenkinsCalls(host)
         self.result = {}
-    def build_computers_info(self):
+    def build(self):
         for computer in self.jc.active_jobs_on_computers():
             self.result[computer['displayName']] = {
                 'jobs_active': BuildsActiveOnComputer(computer).builds_active(),
@@ -63,7 +62,7 @@ class Computers(object):
         return self.result
 
 def computers():
-    return Computers(host).build_computers_info()
+    return ComputersInfo(host).build()
 
 ####
 
@@ -100,18 +99,37 @@ def get_job_state(color):
     else:
         return 5
 
-def view_info(jc, name):
-    result = {}
-    view = jc.view(name)
-    result['description'] = str(view['description'])
-    result['jobs'] = {}
-    for job in view['jobs']:
-        result_job = {}
-        result_job['url'] = job['url']
-        result_job['state'] = get_job_state(job['color'])
-        result['jobs'][job['name']] = result_job
-    return result
+class JobsInView(object):
+    def __init__(self, view):
+        self.result = {}
+        self.view = view
+    def build(self):
+        for job in self.view['jobs']:
+            self.result[job['name']] = {
+            'state': get_job_state(job['color']),
+            'url': job['url']}
+        return self.result
 
+class ViewInfo(object):
+    def __init__(self, host, name):
+        self.jc = JenkinsCalls(host)
+        self.name = name
+        self.result = {}
+
+    def set_description(self, view):
+        if 'description' in view and view['description']:
+            self.result['description'] = view['description']
+
+    def build(self):
+        view = self.jc.view(self.name)
+        self.set_description(view)
+        self.result['jobs'] = JobsInView(view).build()
+        print self.result
+        return self.result
+
+
+def view(name):
+    return ViewInfo(host, name).build()
 
 ####
 
@@ -123,6 +141,4 @@ def views():
     jc = JenkinsCalls(host)
     return views_info(jc)
 
-def view(name):
-    jc = JenkinsCalls(host)
-    return view_info(jc, name)
+
