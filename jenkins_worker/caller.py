@@ -16,14 +16,13 @@ class JenkinsCalls(object):
     def view(self, view):
         return requests.get('http://'+self.host+'/view/'+view+'/api/json').json()
 
-    def active_jobs_on_computes(self):
+    def active_jobs_on_computers(self):
         return requests.get('http://'+self.host+'/computer/api/json?tree=computer[executors[currentExecutable[url]],displayName,numExecutors,offline]').json()['computer']
 
 
 ### Computers
 def build_info(url):
     return requests.get(url+'api/json?tree=actions[causes[shortDescription]],duration,estimatedDuration,url,number,fullDisplayName,building').json()
-
 
 class BuildsActiveOnComputer(object):
     def __init__(self, computer):
@@ -37,6 +36,7 @@ class BuildsActiveOnComputer(object):
         return self.jobs_active
 
     def extract_builds_active(self, job_url):
+        #TODO: state should be building or not? or maybe it is not needed?
         build = build_info(job_url)
         self.jobs_active.append({
             'number':build['number'],
@@ -48,13 +48,13 @@ class BuildsActiveOnComputer(object):
             })
 
 class Computers(object):
-    #jobs_active key is confusing, should be builds_active
+    #TODO: jobs_active key is confusing, should be builds_active
     def __init__(self, host):
         self.host = host
         self.jc = JenkinsCalls(host)
         self.result = {}
     def build_computers_info(self):
-        for computer in self.jc.active_jobs_on_computes():
+        for computer in self.jc.active_jobs_on_computers():
             self.result[computer['displayName']] = {
                 'jobs_active': BuildsActiveOnComputer(computer).builds_active(),
                 'executors': computer['numExecutors'],
