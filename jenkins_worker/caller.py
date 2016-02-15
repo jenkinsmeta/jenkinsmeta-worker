@@ -64,29 +64,8 @@ class ComputersInfo(object):
 def computers():
     return ComputersInfo(host).build()
 
-####
 
-def build_queue_info(jc):
-    result = {}
-    for item in jc.queue():
-        result[item['task']['name']] = {
-            'in_queue_since': item['inQueueSince'],
-            'why': item['why'],
-            'blocked': item['blocked'],
-            'id': item['id'],
-            'url': item['task']['url']
-            }
-    return result
-
-def views_info(jc):
-    result = {}
-    for view in jc.views():
-        result[view['name']] = {'url':view['url']}
-    return result
-
-
-
-####
+#### View
 def get_job_state(color):
     if 'anime' in color:
         return 1
@@ -131,14 +110,40 @@ class ViewInfo(object):
 def view(name):
     return ViewInfo(host, name).build()
 
-####
+#### Queue
+
+class QueueInfo(object):
+    def __init__(self, host):
+        self.jc = JenkinsCalls(host)
+        self.result = {}
+    def build(self):
+        for item in self.jc.queue():
+            self.result[item['task']['name']] = {
+                'in_queue_since': item['inQueueSince'],
+                'why': item['why'],
+                'blocked': item['blocked'],
+                'id': item['id'],
+                'url': item['task']['url']
+                }
+        return self.result
 
 def queue():
-    jc = JenkinsCalls(host)
-    return build_queue_info(jc)
+    return QueueInfo(host).build()
+
+
+####
+
+class ViewsInfo(object):
+    def __init__(self, host):
+        self.jc = JenkinsCalls(host)
+        self.result = {}
+    def build(self):
+        for view in self.jc.views():
+            self.result[view['name']] = {'url':view['url']}
+        return self.result
+
 
 def views():
-    jc = JenkinsCalls(host)
-    return views_info(jc)
+    return ViewsInfo(host).build()
 
 
