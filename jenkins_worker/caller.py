@@ -4,8 +4,8 @@ from config import host
 
 ##Direct calls
 class JenkinsCalls(object):
-    def __init__(self, host):
-        self.host=host
+    def __init__(self, hostname):
+        self.host = hostname
 
     def queue(self):
         return requests.get('http://'+self.host+'/queue/api/json').json()['items']
@@ -31,8 +31,8 @@ class BuildsActiveOnComputer(object):
 
     def builds_active(self):
         for job in self.computer['executors']:
-           if job['currentExecutable']:
-               self.extract_builds_active(job['currentExecutable']['url'])
+            if job['currentExecutable']:
+                self.extract_builds_active(job['currentExecutable']['url'])
         return self.jobs_active
 
     def extract_builds_active(self, job_url):
@@ -71,11 +71,11 @@ def build_queue_info(jc):
     result = {}
     for item in jc.queue():
         result[item['task']['name']] = {
-                'in_queue_since': item['inQueueSince'],
-                'why': item['why'],
-                'blocked': item['blocked'],
-                'id': item['id'],
-                'url': item['task']['url']
+            'in_queue_since': item['inQueueSince'],
+            'why': item['why'],
+            'blocked': item['blocked'],
+            'id': item['id'],
+            'url': item['task']['url']
             }
     return result
 
@@ -88,10 +88,22 @@ def views_info(jc):
 
 
 ####
+def get_job_state(color):
+    if 'anime' in color:
+        return 1
+    elif color == 'aborted':
+        return 2
+    elif color == 'red':
+        return 3
+    elif color == 'blue':
+        return 4
+    else:
+        return 5
+
 def view_info(jc, name):
     result = {}
     view = jc.view(name)
-    result['description']= str(view['description'])
+    result['description'] = str(view['description'])
     result['jobs'] = {}
     for job in view['jobs']:
         result_job = {}

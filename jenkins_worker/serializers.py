@@ -13,7 +13,7 @@ def serialize_computers(computers):
             proto_job.state = job['state']
             proto_job.name = job['name']
             proto_job.build_number = int(job['number'])
-            proto_job.url =  job['url']
+            proto_job.url = job['url']
             if 'duration' in job:
                 proto_job.duration = job['duration']
             if 'estimated_duration' in job:

@@ -1,4 +1,4 @@
-from flask import Flask, send_file
+from flask import Flask
 from flask_restful import Resource, Api
 import jenkins_worker
 
@@ -6,19 +6,13 @@ app = Flask(__name__)
 api = Api(app)
 
 
-
-def return404():
-    abort(404, message="Resource not found")
-
 class Computers(Resource):
     def get(self):
         return jenkins_worker.serialize_computers(jenkins_worker.computers())
 
-
 class Queue(Resource):
     def get(self):
         return jenkins_worker.serialize_queue(jenkins_worker.queue())
-
 
 class Views(Resource):
     def get(self):
@@ -35,5 +29,5 @@ api.add_resource(Views, '/views')
 api.add_resource(View, '/view/<name>')
 
 if __name__ == '__main__':
-        app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=True)
 
