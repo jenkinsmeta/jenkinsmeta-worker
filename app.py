@@ -1,8 +1,9 @@
-from flask import Flask, send_file
+from flask import send_file
+from flask_utils import ProtoFlask
 from flask_restful import Resource, Api
 import jenkins_worker
 
-app = Flask(__name__)
+app = ProtoFlask(__name__)
 api = Api(app)
 
 

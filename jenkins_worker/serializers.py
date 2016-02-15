@@ -1,6 +1,9 @@
-from jenkinsmeta_pb2 import computers_pb2, queue_pb2, views_pb2, view_pb2
-from flask import Response
+import os,sys
+parentdir = os.path.dirname(__file__)
+sys.path.insert(0,parentdir)
 
+from jenkinsmeta_pb2 import computers_pb2, queue_pb2, views_pb2, view_pb2
+from flask_utils import ProtoResponse
 
 def serialize_computers(computers):
     proto_computers = computers_pb2.Computers()
@@ -18,7 +21,7 @@ def serialize_computers(computers):
                 proto_job.duration = job['duration']
             if 'estimated_duration' in job:
                 proto_job.estimated_duration = job['estimated_duration']
-    return Response(proto_computers.SerializeToString(), mimetype='application/octet-stream')
+    return ProtoResponse(proto_computers)
 
 def serialize_queue(queue):
     proto_queue = queue_pb2.Queue()
@@ -32,7 +35,7 @@ def serialize_queue(queue):
             proto_job.why = queue[job]['why']
         if 'blocked' in queue[job]:
             proto_job.blocked = bool(queue[job]['blocked'])
-    return Response(proto_queue.SerializeToString(), mimetype='application/octet-stream')
+    return ProtoResponse(proto_queue)
 
 def serialize_views(views):
     proto_views = views_pb2.Views()
@@ -40,7 +43,7 @@ def serialize_views(views):
         proto_view = proto_views.view.add()
         proto_view.name = view
         proto_view.url = views[view]['url']
-    return Response(proto_views.SerializeToString(), mimetype='application/octet-stream')
+    return ProtoResponse(proto_views)
 
 def serialize_view(view):
     proto_view = view_pb2.View()
@@ -52,7 +55,7 @@ def serialize_view(view):
         proto_job.name = job
         proto_job.url = view['jobs'][job]['url']
         proto_job.state = view['jobs'][job]['state']
-    return Response(proto_view.SerializeToString(), mimetype='application/octet-stream')
+    return ProtoResponse(proto_view)
 
 
 
