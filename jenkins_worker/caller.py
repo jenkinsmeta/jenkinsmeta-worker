@@ -25,7 +25,7 @@ class JenkinsCalls(object):
         return requests.get('http://'+self.host+'/job/'+job+'/api/json').json()
 
     def get_executor_for_job(self, job, number):
-        return requests.get('http://'+self.host+'/job/'+job+'/'+number+'/api/json').json()['builtOn']
+        return requests.get('http://'+self.host+'/job/'+job+'/'+str(number)+'/api/json').json()['builtOn']
 
     def build_is_building(self, job, number):
         return requests.get('http://'+self.host+'/job/'+job+'/'+str(number)+'/api/json').json()['building']
@@ -49,10 +49,10 @@ def _get_active_builds(job_name, jc):
             #debug
             print('Job '+job_name+' does not contain: '+scenario)
     if not scenarios:
-        print('We are fallbacking')
+        print('We are fallbacking to first job number, everything will be scanned')
         scenarios.append('1')
     lower_limit = min(scenarios)
-    for number in range(last_build, lower_limit,-1):
+    for number in range(last_build, lower_limit, -1):
         #TODO: in range, when last build is the same as lower limit, it does not work, happends for first build in job
         if jc.build_is_building(job_name, number):
             active_builds.append(str(number))
@@ -70,6 +70,7 @@ def get_job_state(color):
         return 4
     else:
         return 5
+
 
 #"builtOn" : "", from $job/$number/api/json could be used to determinate slave, -> if "" -> name=master
 def build_computers_info(jc):
