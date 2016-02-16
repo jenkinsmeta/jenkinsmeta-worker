@@ -1,8 +1,8 @@
-from flask import Flask
 from flask_restful import Resource, Api, request
+from flask_utils import ProtoFlask
 import jenkins_worker
 
-app = Flask(__name__)
+app = ProtoFlask(__name__)
 api = Api(app)
 
 #        curl --data "127.0.0.1:8080" http://127.0.0.1:5000/computers -X POST -H "Content-Type:application/octet-stream"
