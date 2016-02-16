@@ -1,4 +1,3 @@
-import os,sys
 from jenkinsmeta_pb2 import computers_pb2, queue_pb2, views_pb2, view_pb2
 from flask_utils import ProtoResponse
 
