@@ -14,8 +14,10 @@ api = Api(app)
 
 
 class Computers(Resource):
-    def post(self):
-        return jenkins_worker.serialize_computers(jenkins_worker.computers(request.get_data()))
+    def get(self):
+	y = request.headers.get('X-JenkinsMeta-URL')
+	z = request.headers.get('X-JenkinsMeta-API')
+        return jenkins_worker.serialize_computers(jenkins_worker.computers(y,z))
 
 class Queue(Resource):
     def post(self):
