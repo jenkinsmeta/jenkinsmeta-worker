@@ -42,6 +42,7 @@ def serialize_views(views):
     return ProtoResponse(proto_views)
 
 def serialize_view(view):
+    print(view)
     proto_view = view_pb2.View()
     if 'description' in view:
         proto_view.description = view['description']

@@ -12,6 +12,6 @@ def queue(host):
     return serialize_queue(QueueInfo(host).build())
 
 def views(host):
-    return serialize_view(ViewsInfo(host).build())
+    return serialize_views(ViewsInfo(host).build())
 
 

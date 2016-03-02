@@ -1,6 +1,6 @@
 from flask_restful import Resource, Api, request
 from flask_utils import ProtoFlask
-from api_factory import get_api
+from api_factory import APIFactory
 
 app = ProtoFlask(__name__)
 api = Api(app)
@@ -9,27 +9,19 @@ api = Api(app)
 
 class Computers(Resource):
     def get(self):
-        url = request.headers.get('X-JenkinsMeta-URL')
-        api = get_api(request)
-        return api.computers(url)
+        return APIFactory(request.headers).computers()
 
 class Queue(Resource):
     def get(self):
-        url = request.headers.get('X-JenkinsMeta-URL')
-        api = get_api(request)
-        return api.queue(url)
+        return APIFactory(request.headers).queue()
 
 class Views(Resource):
     def get(self):
-        url = request.headers.get('X-JenkinsMeta-URL')
-        api = get_api(request)
-        return api.views()
+        return APIFactory(request.headers).views()
 
 class View(Resource):
     def get(self, name):
-        url = request.headers.get('X-JenkinsMeta-URL')
-        api = get_api(request)
-        return api.view(url, name)
+        return APIFactory(request.headers).view(name)
 
 
 
