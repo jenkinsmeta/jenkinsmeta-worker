@@ -1,35 +1,36 @@
 from flask_restful import Resource, Api, request
 from flask_utils import ProtoFlask
-import jenkins_worker
+from api_factory import get_api
 
 app = ProtoFlask(__name__)
 api = Api(app)
 
-#        curl --data "127.0.0.1:8080" http://127.0.0.1:5000/computers -X POST -H "Content-Type:application/octet-stream"
-#        curl --data "127.0.0.1:8080" http://127.0.0.1:5000/view/shorttime -X POST -H "Content-Type:application/octet-stream"
-#        curl --data "127.0.0.1:8080" http://127.0.0.1:5000/views -X POST -H "Content-Type:application/octet-stream"
-#        curl --data "127.0.0.1:8080" http://127.0.0.1:5000/queue -X POST -H "Content-Type:application/octet-stream"
-#        Deserialization will be needed first, to check if payload is about jenkins or other
-
+# curl -H "X-JenkinsMeta-URL: localhost:5000" -H "X-JenkinsMeta-API: Jenkins" http://127.0.0.1:5000/computers -X GET
 
 
 class Computers(Resource):
     def get(self):
-	y = request.headers.get('X-JenkinsMeta-URL')
-	z = request.headers.get('X-JenkinsMeta-API')
-        return jenkins_worker.serialize_computers(jenkins_worker.computers(y,z))
+        url = request.headers.get('X-JenkinsMeta-URL')
+        api = get_api(request)
+        return api.computers(url)
 
 class Queue(Resource):
-    def post(self):
-        return jenkins_worker.serialize_queue(jenkins_worker.queue(request.get_data()))
+    def get(self):
+        url = request.headers.get('X-JenkinsMeta-URL')
+        api = get_api(request)
+        return api.queue(url)
 
 class Views(Resource):
-    def post(self):
-        return jenkins_worker.serialize_views(jenkins_worker.views(request.get_data()))
+    def get(self):
+        url = request.headers.get('X-JenkinsMeta-URL')
+        api = get_api(request)
+        return api.views()
 
 class View(Resource):
-    def post(self, name):
-        return jenkins_worker.serialize_view(jenkins_worker.view(request.get_data(), name))
+    def get(self, name):
+        url = request.headers.get('X-JenkinsMeta-URL')
+        api = get_api(request)
+        return api.view(url, name)
 
 
 

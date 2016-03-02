@@ -60,8 +60,6 @@ class ComputersInfo(object):
                 }
         return self.result
 
-def computers(host):
-    return ComputersInfo(host).build()
 
 
 #### View
@@ -106,8 +104,6 @@ class ViewInfo(object):
         return self.result
 
 
-def view(host, name):
-    return ViewInfo(host, name).build()
 
 #### Queue
 
@@ -126,8 +122,6 @@ class QueueInfo(object):
                 }
         return self.result
 
-def queue(host):
-    return QueueInfo(host).build()
 
 
 #### Views
@@ -141,8 +135,5 @@ class ViewsInfo(object):
             self.result[view['name']] = {'url':view['url']}
         return self.result
 
-
-def views(host):
-    return ViewsInfo(host).build()
 
 
