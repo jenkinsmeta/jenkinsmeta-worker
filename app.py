@@ -5,8 +5,7 @@ from api_factory import get_api
 app = ProtoFlask(__name__)
 api = Api(app)
 
-# curl -H "X-JenkinsMeta-URL: localhost:5000" -H "X-JenkinsMeta-API: Jenkins" http://127.0.0.1:5000/computers -X GET
-
+# curl -H "X-JenkinsMeta-URL: localhost:8080" -H "X-JenkinsMeta-API: Jenkins" http://127.0.0.1:5000/computers -X GET
 
 class Computers(Resource):
     def get(self):
