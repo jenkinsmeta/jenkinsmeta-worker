@@ -1,23 +1,21 @@
 from flask_restful import Resource, Api, request
 from flask_utils import ProtoFlask
 import jenkins_worker
+from api_factory import APIFactory
 
 app = ProtoFlask(__name__)
 api = Api(app)
 
-#        curl --data "127.0.0.1:8080" http://127.0.0.1:5000/computers -X POST -H "Content-Type:application/octet-stream"
-#        curl --data "127.0.0.1:8080" http://127.0.0.1:5000/view/shorttime -X POST -H "Content-Type:application/octet-stream"
-#        curl --data "127.0.0.1:8080" http://127.0.0.1:5000/views -X POST -H "Content-Type:application/octet-stream"
-#        curl --data "127.0.0.1:8080" http://127.0.0.1:5000/queue -X POST -H "Content-Type:application/octet-stream"
 #        Deserialization will be needed first, to check if payload is about jenkins or other
+# curl --header "X-url: kekedserver:8080" -H "X-api: jenkins" http://127.0.0.1:5000/computers -X GET
 
 
 
 class Computers(Resource):
+##tutaj potrzebna jest fabryka na podstawie request.header api wywolywanie odpowiednich obiektow typu worker
     def get(self):
-	y = request.headers.get('X-JenkinsMeta-URL')
-	z = request.headers.get('X-JenkinsMeta-API')
-        return jenkins_worker.serialize_computers(jenkins_worker.computers(y,z))
+        return APIFactory(request.header).computers()
+        #return jenkins_worker.serialize_computers(jenkins_worker.computers())
 
 class Queue(Resource):
     def post(self):
